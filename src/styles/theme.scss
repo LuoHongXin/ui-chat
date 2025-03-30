@@ -1,0 +1,69 @@
+// 主题变量
+:root {
+
+    // 暗黑主题（默认）
+    &.dark-theme {
+        --bg-color: #1a1a1a;
+        --text-color: #ffffff;
+        --border-color: #333333;
+        --hover-color: #2c2c2c;
+        --el-fill-color-light: #2c2c2c;
+        --chat-bg: #343541;
+        --sidebar-bg: #202123;
+        --message-bg: #40414f;
+        --message-hover-bg: #2a2b32;
+        --message-text: #ececf1;
+        --send-button-bg: var(--el-color-primary);
+    }
+
+    // 明亮主题
+    &.light-theme {
+        --bg-color: #ffffff;
+        --text-color: #333333;
+        --border-color: #e4e4e4;
+        --hover-color: #f5f5f5;
+        --chat-bg: #F7F8FA;
+        --sidebar-bg: #ffffff;
+        --message-bg: #ffffff;
+        --message-hover-bg: #f0f0f0;
+        --message-text: #333333;
+        --send-button-bg: var(--el-color-primary);
+    }
+}
+
+// 应用主题样式
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+.el-container {
+    background-color: var(--bg-color);
+}
+
+.el-card {
+    background-color: var(--bg-color);
+    border-color: var(--border-color);
+    color: var(--text-color);
+}
+
+.el-input {
+    background-color: var(--bg-color);
+
+    .el-input__wrapper {
+        background-color: var(--bg-color);
+        border-color: var(--border-color);
+    }
+
+    .el-input__inner {
+        color: var(--text-color);
+    }
+}
+
+.assistant-item.selected,
+.chat-history-item.selected {
+    border: 2px solid var(--el-color-primary-light-7);
+    border-radius: 8px;
+    background-color: var(--hover-color);
+
+}
