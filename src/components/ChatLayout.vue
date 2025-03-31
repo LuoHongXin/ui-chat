@@ -1,17 +1,7 @@
 <template>
   <div class="chat-container">
-    <ThemeSwitch />
     <!-- 助理列表 -->
     <div class="assistant-list">
-      <div class="list-header">
-        <el-button
-          type="primary"
-          @click="createAssistant"
-          class="new-assistant-btn"
-        >
-          新建助理
-        </el-button>
-      </div>
       <el-card
         v-for="assistant in assistants"
         :key="assistant.id"
@@ -23,16 +13,16 @@
         @click="selectAssistant(assistant)"
       >
         <div class="assistant-item-content">
-          <span>{{ assistant.name }}</span>
-          <el-tooltip content="删除" placement="top" :hide-after="0">
-            <el-button
-              type="danger"
-              size="small"
-              @click.stop="deleteAssistant(assistant.id)"
-            >
-              <el-icon><Delete /></el-icon>
-            </el-button>
-          </el-tooltip>
+          <div class="assistant-avatar">
+            <img
+              :src="assistant.avatar || '/favicon.ico'"
+              :alt="assistant.name"
+            />
+          </div>
+          <div class="assistant-info">
+            <div class="assistant-name">{{ assistant.name }}</div>
+            <div class="assistant-description">{{ assistant.description }}</div>
+          </div>
         </div>
       </el-card>
     </div>
@@ -45,6 +35,7 @@
         class="new-chat-btn"
         :disabled="!currentAssistant"
       >
+        <el-icon style="margin-right: 8px"><Plus /></el-icon>
         新建对话
       </el-button>
       <el-card
@@ -55,7 +46,9 @@
         @click="selectChat(chat)"
       >
         <div class="chat-history-item-content">
-          <span>{{ chat.name }}</span>
+          <el-tooltip :content="chat.name" placement="top" :hide-after="0">
+            <span class="chat-name">{{ chat.name }}</span>
+          </el-tooltip>
           <el-tooltip content="删除" placement="top" :hide-after="0">
             <el-button
               type="danger"
@@ -155,15 +148,15 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
 import axios from "axios";
 import { API_CONFIG, ASSISTANTS } from "../config";
-import ThemeSwitch from "./ThemeSwitch.vue";
 import {
   Promotion,
   Delete,
   CopyDocument,
   Refresh,
+  Plus,
 } from "@element-plus/icons-vue";
 const SendIcon = Promotion;
 
@@ -184,14 +177,13 @@ function removeThinkContent(content) {
 async function loadAssistants() {
   try {
     const response = await axios.get(
-      `${API_CONFIG.API_SERVER}/v1/dialog/list`,
+      `${API_CONFIG.API_SERVER}/api/v1/chats?page=1&page_size=999&orderby=update_time`,
       {
         headers: {
           Authorization: `Bearer ${API_CONFIG.API_KEY}`,
         },
       }
     );
-    response.data = ASSISTANTS;
     if (response.data.code === 0) {
       assistants.value = response.data.data;
       if (assistants.value.length > 0) {
@@ -228,23 +220,104 @@ async function loadChats(assistantId) {
     return [];
   }
 }
-
-// 助理管理
-function createAssistant() {
-  ElMessage.warning("请通过管理界面创建助理");
-}
-
-function deleteAssistant(id) {
-  ElMessage.warning("请通过管理界面删除助理");
+// 生成32位随机字符串
+function generateRandomId() {
+  const chars =
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let result = "";
+  for (let i = 0; i < 32; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
 }
 
 // 聊天记录管理
 function createNewChat() {
-  ElMessage.warning("请通过API创建对话");
+  if (!currentAssistant.value) return;
+
+  const newChat = {
+    id: generateRandomId(), // 使用32位随机字符串作为临时ID
+    name: `新对话 ${(currentAssistant.value.chats || []).length + 1}`,
+    messages: [
+      {
+        role: "assistant",
+        content: "你好！我是你的助理，有什么可以帮到你的吗？",
+        id: generateRandomId(),
+      },
+    ],
+    isTemp: true, // 添加临时标识
+  };
+
+  if (!currentAssistant.value.chats) {
+    currentAssistant.value.chats = [];
+  }
+  currentAssistant.value.chats.unshift(newChat);
+  currentChat.value = newChat;
 }
 
-function deleteChat(id) {
-  ElMessage.warning("请通过API删除对话");
+async function deleteChat(id) {
+  try {
+    await ElMessageBox.confirm("确定删除吗?", "提示", {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning",
+    });
+
+    const chat = currentAssistant.value.chats.find((c) => c.id === id);
+    if (chat && chat.isTemp) {
+      // 如果是临时对话，直接从列表中移除
+      currentAssistant.value.chats = currentAssistant.value.chats.filter(
+        (c) => c.id !== id
+      );
+
+      if (currentChat.value.id === id) {
+        currentChat.value =
+          currentAssistant.value.chats.length > 0
+            ? currentAssistant.value.chats[0]
+            : { id: null, messages: [] };
+      }
+
+      ElMessage.success("对话删除成功");
+      return;
+    }
+
+    const response = await axios.delete(
+      `${API_CONFIG.API_SERVER}/api/v1/chats/${currentAssistant.value.id}/sessions`,
+      {
+        headers: {
+          Authorization: `Bearer ${API_CONFIG.API_KEY}`,
+        },
+        data: {
+          ids: [id],
+        },
+      }
+    );
+
+    if (response.data.code === 0) {
+      // 从对话列表中移除该对话
+      currentAssistant.value.chats = currentAssistant.value.chats.filter(
+        (chat) => chat.id !== id
+      );
+
+      // 如果删除的是当前对话，则切换到其他对话或清空显示
+      if (currentChat.value.id === id) {
+        currentChat.value =
+          currentAssistant.value.chats.length > 0
+            ? currentAssistant.value.chats[0]
+            : { id: null, messages: [] };
+      }
+
+      ElMessage.success("对话删除成功");
+    } else {
+      ElMessage.error("删除对话失败");
+    }
+  } catch (error) {
+    if (error === "cancel") {
+      return;
+    }
+    console.error("删除对话失败:", error);
+    ElMessage.error("删除对话失败");
+  }
 }
 
 // 助理和对话选择
@@ -263,8 +336,8 @@ function selectChat(chat) {
 async function sendMessage(value) {
   let msg = value || messageInput.value;
   if (!msg.trim()) return;
-  if (!currentChat.value.id) {
-    ElMessage.warning("请先选择或创建一个对话");
+  if (!currentAssistant.value) {
+    ElMessage.warning("请先选择一个助理");
     return;
   }
 
@@ -278,11 +351,47 @@ async function sendMessage(value) {
   messageInput.value = "";
 
   try {
+    // 如果是临时会话ID，先创建新会话
+    let sessionId = currentChat.value.id;
+    if (currentChat.value.isTemp) {
+      const createSessionResponse = await axios.post(
+        `${API_CONFIG.API_SERVER}/api/v1/chats/${currentAssistant.value.id}/sessions`,
+        {
+          conversation_id: sessionId,
+          dialog_id: currentAssistant.value.id,
+          is_new: true,
+          message: [
+            {
+              role: "assistant",
+              content: "你好！ 我是你的助理，有什么可以帮到你的吗？",
+            },
+          ],
+          name: msg,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${API_CONFIG.API_KEY}`,
+          },
+        }
+      );
+
+      if (createSessionResponse.data.code === 0) {
+        sessionId = createSessionResponse.data.data.id;
+        currentChat.value.id = sessionId;
+        currentChat.value.isTemp = false; // 创建成功后设置为非临时
+      } else {
+        ElMessage.error("创建会话失败");
+        currentChat.value.messages.pop();
+        messageInput.value = originalInput;
+        return;
+      }
+    }
+
     const response = await axios.post(
       `${API_CONFIG.API_SERVER}/api/v1/chats/${currentAssistant.value.id}/completions`,
       {
         question: originalInput,
-        session_id: currentChat.value.id,
+        session_id: sessionId,
         stream: false,
       },
       {
@@ -348,11 +457,6 @@ function deleteMessage(message) {
   display: flex;
   flex-direction: column;
   padding: 16px;
-
-  .list-header {
-    padding: 16px;
-    border-bottom: 1px solid var(--border-color);
-  }
 }
 
 .chat-history {
@@ -435,9 +539,6 @@ function deleteMessage(message) {
   width: 100%;
   margin-bottom: 16px;
   border-radius: 8px;
-  background-color: var(--sidebar-bg);
-  border: 1px solid var(--border-color);
-  color: var(--message-text);
 }
 
 .assistant-item,
@@ -458,18 +559,30 @@ function deleteMessage(message) {
   &.active {
     background-color: var(--message-bg);
     border: 1px solid var(--el-color-primary-light-7);
-    .chat-history-item-content,
-    .assistant-item-content {
-      color: var(--el-color-primary-light-7);
-    }
   }
+}
 
-  &-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px;
-    color: var(--message-text);
+.assistant-item-content,
+.chat-history-item-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
+  color: var(--message-text);
+
+  .chat-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: left;
+  }
+}
+
+.active {
+  .chat-history-item-content,
+  .assistant-item-content {
+    color: var(--el-color-primary-light-7);
   }
 }
 
@@ -512,20 +625,14 @@ function deleteMessage(message) {
     }
 
     .avatar {
-      width: 40px;
-      height: 40px;
+      width: 32px;
+      height: 32px;
       border-radius: 4px;
       overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
       background-color: var(--chat-bg);
-
-      img {
-        width: 24px;
-        height: 24px;
-        object-fit: contain;
-      }
     }
 
     .message-actions {
@@ -555,6 +662,30 @@ function deleteMessage(message) {
         margin-top: 24px;
       }
     }
+  }
+}
+.assistant-avatar {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+  }
+}
+
+.assistant-info {
+  .assistant-name {
+    font-size: 14px;
+    font-weight: bolder;
+  }
+  .assistant-description {
+    font-size: 12px;
+    font-weight: 400;
   }
 }
 </style>
