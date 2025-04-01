@@ -157,7 +157,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, nextTick } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import axios from "axios";
 import { API_CONFIG, ASSISTANTS } from "../config";
@@ -347,6 +347,7 @@ async function selectAssistant(assistant) {
 
 function selectChat(chat) {
   currentChat.value = chat;
+  scrollToBottom();
 }
 
 // 消息管理
@@ -368,13 +369,7 @@ async function sendMessage(value) {
   messageInput.value = "";
   isLoading.value = true;
 
-  // 滚动到最新消息
-  setTimeout(() => {
-    const messageContainer = document.querySelector(".chat-messages");
-    if (messageContainer) {
-      messageContainer.scrollTop = messageContainer.scrollHeight;
-    }
-  }, 100);
+  scrollToBottom();
 
   try {
     // 如果是临时会话ID，先创建新会话
@@ -434,13 +429,7 @@ async function sendMessage(value) {
         id: response.data.data.id,
       };
       currentChat.value.messages.push(aiMessage);
-      // 滚动到最新消息
-      setTimeout(() => {
-        const messageContainer = document.querySelector(".chat-messages");
-        if (messageContainer) {
-          messageContainer.scrollTop = messageContainer.scrollHeight;
-        }
-      }, 100);
+      scrollToBottom();
     } else {
       ElMessage.error("获取AI回答失败");
       currentChat.value.messages.pop();
@@ -453,13 +442,7 @@ async function sendMessage(value) {
     messageInput.value = originalInput;
   } finally {
     isLoading.value = false;
-    // 滚动到最新消息
-    setTimeout(() => {
-      const messageContainer = document.querySelector(".chat-messages");
-      if (messageContainer) {
-        messageContainer.scrollTop = messageContainer.scrollHeight;
-      }
-    }, 100);
+    scrollToBottom();
   }
 }
 
@@ -481,6 +464,16 @@ async function regenerateMessage(message) {
 // 删除消息
 function deleteMessage(message) {
   ElMessage.warning("请通过API删除消息");
+}
+
+// 滚动到最新消息
+function scrollToBottom() {
+  nextTick(() => {
+    const messageContainer = document.querySelector(".chat-messages");
+    if (messageContainer) {
+      messageContainer.scrollTop = messageContainer.scrollHeight;
+    }
+  });
 }
 </script>
 

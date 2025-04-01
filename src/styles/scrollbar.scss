@@ -6,13 +6,23 @@
 ::-webkit-scrollbar-track {
   background: var(--chat-bg);
   border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.3s;
 }
 
 ::-webkit-scrollbar-thumb {
   background: var(--border-color);
   border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
 
-  &:hover {
-    background: var(--el-color-primary-light-7);
-  }
+// 滚动或悬停时显示滚动条
+*:hover::-webkit-scrollbar-track,
+*:hover::-webkit-scrollbar-thumb,
+*::-webkit-scrollbar-track:hover,
+*::-webkit-scrollbar-thumb:hover,
+*::-webkit-scrollbar-track:active,
+*::-webkit-scrollbar-thumb:active {
+  opacity: 1;
 }
