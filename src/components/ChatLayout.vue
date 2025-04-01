@@ -112,9 +112,11 @@
               </el-button-group>
             </div>
 
-            <div class="message-content" :class="{ 'has-actions': true }">
-              {{ removeThinkContent(message.content) }}
-            </div>
+            <div
+              class="message-content"
+              :class="{ 'has-actions': true }"
+              v-html="md.render(removeThinkContent(message.content))"
+            ></div>
           </div>
         </div>
         <div v-if="isLoading" class="message">
@@ -170,6 +172,8 @@ import {
 import aiAvatar from "../assets/ai-avatar.svg";
 import userAvatar from "../assets/user-avatar.svg";
 import winhongAvatar from "../assets/winhong.ico";
+import MarkdownIt from "markdown-it";
+const md = new MarkdownIt();
 const SendIcon = Promotion;
 
 // 状态管理
@@ -185,7 +189,7 @@ onMounted(() => {
 });
 // 移除消息中的思考过程
 function removeThinkContent(content) {
-  return content.replace(/<think>.*?<\/think>/gs, "");
+  return content.replace(/<think>.*?<\/think>/gs, "").replace(/##\d+\$\$/g, "");
 }
 async function loadAssistants() {
   try {
@@ -214,7 +218,7 @@ async function loadAssistants() {
 async function loadChats(assistantId) {
   try {
     const response = await axios.get(
-      `${API_CONFIG.API_SERVER}/api/v1/chats/${assistantId}/sessions?page=1&page_size=100&orderby=create_time&desc=false`,
+      `${API_CONFIG.API_SERVER}/api/v1/chats/${assistantId}/sessions?page=1&page_size=100&orderby=update_time&desc=false`,
       {
         headers: {
           Authorization: `Bearer ${API_CONFIG.API_KEY}`,
@@ -688,7 +692,6 @@ function deleteMessage(message) {
     }
 
     .message-content {
-      white-space: pre-wrap;
       word-break: break-word;
       padding: 10px 14px;
       border-radius: 4px;
@@ -696,6 +699,37 @@ function deleteMessage(message) {
       max-width: 70%;
       position: relative;
       text-align: left;
+
+      :deep(p) {
+        margin: 0.5em 0;
+      }
+
+      :deep(pre) {
+        background-color: var(--code-bg);
+        padding: 1em;
+        border-radius: 4px;
+        overflow-x: auto;
+      }
+
+      :deep(code) {
+        font-family: monospace;
+        background-color: var(--code-bg);
+        padding: 0.2em 0.4em;
+        border-radius: 3px;
+      }
+
+      :deep(ul),
+      :deep(ol) {
+        padding-left: 1.5em;
+        margin: 0.5em 0;
+      }
+
+      :deep(blockquote) {
+        margin: 0.5em 0;
+        padding-left: 1em;
+        border-left: 4px solid var(--border-color);
+        color: var(--text-color-secondary);
+      }
 
       &.has-actions {
         margin-top: 24px;
