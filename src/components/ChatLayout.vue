@@ -15,7 +15,7 @@
         <div class="assistant-item-content">
           <div class="assistant-avatar">
             <img
-              :src="assistant.avatar || '/favicon.ico'"
+              :src="assistant.avatar || winhongAvatar"
               :alt="assistant.name"
             />
           </div>
@@ -73,11 +73,7 @@
           <div :class="['message-wrapper', message.role]">
             <div class="avatar">
               <img
-                :src="
-                  message.role === 'user'
-                    ? '/user-avatar.svg'
-                    : '/ai-avatar.svg'
-                "
+                :src="message.role === 'user' ? userAvatar : aiAvatar"
                 :alt="message.role"
               />
             </div>
@@ -158,6 +154,9 @@ import {
   Refresh,
   Plus,
 } from "@element-plus/icons-vue";
+import aiAvatar from "../assets/ai-avatar.svg";
+import userAvatar from "../assets/user-avatar.svg";
+import winhongAvatar from "../assets/winhong.ico";
 const SendIcon = Promotion;
 
 // 状态管理

@@ -5,6 +5,7 @@ import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import './styles/element-plus.scss'
 import './styles/theme.scss'
+import './styles/scrollbar.scss'
 import { THEME_CONFIG } from './config'
 
 const app = createApp(App)
