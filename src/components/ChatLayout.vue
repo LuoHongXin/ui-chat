@@ -104,14 +104,26 @@
                 </el-tooltip>
               </el-button-group>
               <el-button-group v-else>
-                <el-button size="small" text @click="copyMessage(message)"
-                  >复制</el-button
-                >
+                <el-tooltip content="复制" placement="top" :hide-after="0">
+                  <el-button size="small" text @click="copyMessage(message)">
+                    <el-icon><CopyDocument /></el-icon>
+                  </el-button>
+                </el-tooltip>
               </el-button-group>
             </div>
 
             <div class="message-content" :class="{ 'has-actions': true }">
               {{ removeThinkContent(message.content) }}
+            </div>
+          </div>
+        </div>
+        <div v-if="isLoading" class="message">
+          <div class="message-wrapper assistant">
+            <div class="avatar">
+              <img :src="aiAvatar" alt="assistant" />
+            </div>
+            <div class="message-content loading">
+              <el-icon class="is-loading"><Loading /></el-icon> AI正在思考中...
             </div>
           </div>
         </div>
@@ -153,6 +165,7 @@ import {
   CopyDocument,
   Refresh,
   Plus,
+  Loading,
 } from "@element-plus/icons-vue";
 import aiAvatar from "../assets/ai-avatar.svg";
 import userAvatar from "../assets/user-avatar.svg";
@@ -164,6 +177,7 @@ const assistants = ref([]);
 const currentAssistant = ref(null);
 const currentChat = ref({ id: null, messages: [] });
 const messageInput = ref("");
+const isLoading = ref(false);
 
 // 从API加载数据
 onMounted(() => {
@@ -348,6 +362,15 @@ async function sendMessage(value) {
   currentChat.value.messages.push(userMessage);
   const originalInput = msg;
   messageInput.value = "";
+  isLoading.value = true;
+
+  // 滚动到最新消息
+  setTimeout(() => {
+    const messageContainer = document.querySelector(".chat-messages");
+    if (messageContainer) {
+      messageContainer.scrollTop = messageContainer.scrollHeight;
+    }
+  }, 100);
 
   try {
     // 如果是临时会话ID，先创建新会话
@@ -407,6 +430,13 @@ async function sendMessage(value) {
         id: response.data.data.id,
       };
       currentChat.value.messages.push(aiMessage);
+      // 滚动到最新消息
+      setTimeout(() => {
+        const messageContainer = document.querySelector(".chat-messages");
+        if (messageContainer) {
+          messageContainer.scrollTop = messageContainer.scrollHeight;
+        }
+      }, 100);
     } else {
       ElMessage.error("获取AI回答失败");
       currentChat.value.messages.pop();
@@ -417,6 +447,15 @@ async function sendMessage(value) {
     ElMessage.error("发送消息失败");
     currentChat.value.messages.pop();
     messageInput.value = originalInput;
+  } finally {
+    isLoading.value = false;
+    // 滚动到最新消息
+    setTimeout(() => {
+      const messageContainer = document.querySelector(".chat-messages");
+      if (messageContainer) {
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+      }
+    }, 100);
   }
 }
 
@@ -603,7 +642,7 @@ function deleteMessage(message) {
       }
 
       .message-actions {
-        right: 68px;
+        right: 60px;
       }
     }
 
@@ -613,7 +652,7 @@ function deleteMessage(message) {
       }
 
       .message-actions {
-        left: 68px;
+        left: 60px;
       }
     }
 
@@ -656,9 +695,19 @@ function deleteMessage(message) {
       background-color: var(--message-bg);
       max-width: 70%;
       position: relative;
+      text-align: left;
 
       &.has-actions {
         margin-top: 24px;
+      }
+
+      &.loading {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        .is-loading {
+          animation: rotating 2s linear infinite;
+        }
       }
     }
   }
@@ -685,6 +734,15 @@ function deleteMessage(message) {
   .assistant-description {
     font-size: 12px;
     font-weight: 400;
+  }
+}
+
+@keyframes rotating {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
 </style>
