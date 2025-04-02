@@ -1,9 +1,41 @@
+import axios from 'axios';
 import { API_CONFIG } from '../config';
+import { useAuthStore } from '../stores/auth';
 
-// 获取cookie中的token
-export function getToken() {
-    return document.cookie.split(';').find(c => c.trim().startsWith('SESSION='))?.split('=')[1];
-}
+// 创建axios实例
+const instance = axios.create({
+    baseURL: API_CONFIG.API_SERVER,
+    timeout: 10000,
+    headers: {
+        'Content-Type': 'application/json'
+    }
+});
+
+// 请求拦截器
+instance.interceptors.request.use(
+    config => {
+        const token = getToken();
+        if (token) {
+            config.headers['Authorization'] = `Bearer ${token}`;
+        }
+        return config;
+    },
+    error => {
+        return Promise.reject(error);
+    }
+);
+
+// 响应拦截器
+instance.interceptors.response.use(
+    response => response,
+    error => {
+        if (error.response && error.response.status === 401) {
+            redirectToAuth();
+            return Promise.reject(error);
+        }
+        return Promise.reject(error);
+    }
+);
 
 // 生成随机state
 export function generateState() {
@@ -17,12 +49,48 @@ export function redirectToAuth() {
     window.location.href = authUrl;
 }
 
-// 检查token并处理授权
-export function checkAuth() {
-    const token = getToken();
-    if (!token) {
-        redirectToAuth();
-        return false;
-    }
-    return true;
+// 从store获取token
+export function getToken() {
+    const authStore = useAuthStore();
+    return authStore.token;
 }
+
+// 从API获取token
+export async function fetchToken(code) {
+    try {
+        const credentials = btoa(`${API_CONFIG.appId}:${API_CONFIG.securityKey}`);
+        const formData = new URLSearchParams();
+        formData.append('grant_type', 'authorization_code');
+        formData.append('client_id', API_CONFIG.appId);
+        formData.append('code', code);
+
+        const response = await instance.post('/api/v1/oauth2/token', formData, {
+            headers: {
+                'Authorization': `Basic ${credentials}`,
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching token:', error);
+        return null;
+    }
+}
+
+// 获取用户信息
+export async function fetchUserInfo(accessToken) {
+    try {
+        const response = await instance.get('/api/v1/oauth2/userinfo', {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching user info:', error);
+        return null;
+    }
+}
+
+// 导出axios实例供其他模块使用
+export default instance;

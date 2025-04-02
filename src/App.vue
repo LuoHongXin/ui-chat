@@ -1,9 +1,33 @@
 <script setup>
-import ChatLayout from './components/ChatLayout.vue'
+import ChatLayout from "./components/ChatLayout.vue";
+import { useAuthStore } from "./stores/auth";
+import { redirectToAuth } from "./utils/auth";
+import { onMounted, ref } from "vue";
+
+const isTokenLoaded = ref(false);
+
+const authStore = useAuthStore();
+
+onMounted(async () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const code = urlParams.get("code");
+  if (code) {
+    authStore.setCode(code);
+  } else {
+    return redirectToAuth();
+  }
+  const token = await authStore.getToken();
+  if (token) {
+    await authStore.getUserInfo();
+    isTokenLoaded.value = true;
+    console.log("Token:", authStore.token);
+    console.log("User Info:", authStore.userInfo);
+  }
+});
 </script>
 
 <template>
-  <ChatLayout />
+  <ChatLayout v-if="isTokenLoaded" />
 </template>
 
 <style>

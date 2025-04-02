@@ -159,8 +159,8 @@
 <script setup>
 import { ref, onMounted, nextTick } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import axios from "axios";
-import { API_CONFIG, ASSISTANTS } from "../config";
+import { API_CONFIG } from "../config";
+import instance from "../utils/auth";
 import {
   Promotion,
   Delete,
@@ -193,13 +193,8 @@ function removeThinkContent(content) {
 }
 async function loadAssistants() {
   try {
-    const response = await axios.get(
-      `${API_CONFIG.API_SERVER}/api/v1/chats?page=1&page_size=999&orderby=update_time`,
-      {
-        headers: {
-          Authorization: `Bearer ${API_CONFIG.API_KEY}`,
-        },
-      }
+    const response = await instance.get(
+      `/api/v1/chats?page=1&page_size=999&orderby=update_time`
     );
     if (response.data.code === 0) {
       assistants.value = response.data.data;
@@ -217,13 +212,8 @@ async function loadAssistants() {
 
 async function loadChats(assistantId) {
   try {
-    const response = await axios.get(
-      `${API_CONFIG.API_SERVER}/api/v1/chats/${assistantId}/sessions?page=1&page_size=100&orderby=update_time&desc=false`,
-      {
-        headers: {
-          Authorization: `Bearer ${API_CONFIG.API_KEY}`,
-        },
-      }
+    const response = await instance.get(
+      `/api/v1/chats/${assistantId}/sessions?page=1&page_size=100&orderby=update_time&desc=false`
     );
     if (response.data.code === 0) {
       return response.data.data;
@@ -298,12 +288,9 @@ async function deleteChat(id) {
       return;
     }
 
-    const response = await axios.delete(
-      `${API_CONFIG.API_SERVER}/api/v1/chats/${currentAssistant.value.id}/sessions`,
+    const response = await instance.delete(
+      `/api/v1/chats/${currentAssistant.value.id}/sessions`,
       {
-        headers: {
-          Authorization: `Bearer ${API_CONFIG.API_KEY}`,
-        },
         data: {
           ids: [id],
         },
@@ -375,8 +362,8 @@ async function sendMessage(value) {
     // 如果是临时会话ID，先创建新会话
     let sessionId = currentChat.value.id;
     if (currentChat.value.isTemp) {
-      const createSessionResponse = await axios.post(
-        `${API_CONFIG.API_SERVER}/api/v1/chats/${currentAssistant.value.id}/sessions`,
+      const createSessionResponse = await instance.post(
+        `/api/v1/chats/${currentAssistant.value.id}/sessions`,
         {
           conversation_id: sessionId,
           dialog_id: currentAssistant.value.id,
@@ -388,18 +375,13 @@ async function sendMessage(value) {
             },
           ],
           name: msg,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${API_CONFIG.API_KEY}`,
-          },
         }
       );
 
       if (createSessionResponse.data.code === 0) {
         sessionId = createSessionResponse.data.data.id;
         currentChat.value.id = sessionId;
-        currentChat.value.isTemp = false; // 创建成功后设置为非临时
+        currentChat.value.isTemp = false;
       } else {
         ElMessage.error("创建会话失败");
         currentChat.value.messages.pop();
@@ -408,17 +390,12 @@ async function sendMessage(value) {
       }
     }
 
-    const response = await axios.post(
-      `${API_CONFIG.API_SERVER}/api/v1/chats/${currentAssistant.value.id}/completions`,
+    const response = await instance.post(
+      `/api/v1/chats/${currentAssistant.value.id}/completions`,
       {
         question: originalInput,
         session_id: sessionId,
         stream: false,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${API_CONFIG.API_KEY}`,
-        },
       }
     );
 
