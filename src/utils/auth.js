@@ -2,8 +2,13 @@ import axios from 'axios';
 import { API_CONFIG } from '../config';
 import { useAuthStore } from '../stores/auth';
 
-// 创建axios实例
-const instance = axios.create({
+// 创建用于认证的axios实例
+const authInstance = axios.create({
+    timeout: 10000
+});
+
+// 创建用于API请求的axios实例
+const apiInstance = axios.create({
     baseURL: API_CONFIG.API_SERVER,
     timeout: 10000,
     headers: {
@@ -11,13 +16,10 @@ const instance = axios.create({
     }
 });
 
-// 请求拦截器
-instance.interceptors.request.use(
+// API实例的请求拦截器
+apiInstance.interceptors.request.use(
     config => {
-        const token = getToken();
-        if (token) {
-            config.headers['Authorization'] = `Bearer ${token}`;
-        }
+        config.headers['Authorization'] = `Bearer ${API_CONFIG.API_KEY}`;
         return config;
     },
     error => {
@@ -25,8 +27,8 @@ instance.interceptors.request.use(
     }
 );
 
-// 响应拦截器
-instance.interceptors.response.use(
+// API实例的响应拦截器
+apiInstance.interceptors.response.use(
     response => response,
     error => {
         if (error.response && error.response.status === 401) {
@@ -64,7 +66,7 @@ export async function fetchToken(code) {
         formData.append('client_id', API_CONFIG.appId);
         formData.append('code', code);
 
-        const response = await instance.post('/api/v1/oauth2/token', formData, {
+        const response = await authInstance.post('https://account.qiyeyun.co/api/v1/oauth2/token', formData, {
             headers: {
                 'Authorization': `Basic ${credentials}`,
                 'Content-Type': 'application/x-www-form-urlencoded'
@@ -80,7 +82,7 @@ export async function fetchToken(code) {
 // 获取用户信息
 export async function fetchUserInfo(accessToken) {
     try {
-        const response = await instance.get('/api/v1/oauth2/userinfo', {
+        const response = await authInstance.get('https://account.qiyeyun.co/api/v1/oauth2/userinfo', {
             headers: {
                 'Authorization': `Bearer ${accessToken}`
             }
@@ -92,5 +94,5 @@ export async function fetchUserInfo(accessToken) {
     }
 }
 
-// 导出axios实例供其他模块使用
-export default instance;
+// 导出API实例供其他模块使用
+export default apiInstance;
