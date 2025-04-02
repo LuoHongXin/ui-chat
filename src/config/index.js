@@ -6,6 +6,8 @@ export const THEME_CONFIG = {
 
 // API配置
 export const API_CONFIG = {
+    appId: "wh5de3bcd828824b7",
+    securityKey: "430412ff4f49450c8e2bbc1507730732",
     // API服务器地址，默认使用本地测试服务器
     API_SERVER: 'http://10.10.152.60',
     // API密钥，需要替换为实际的API Key
