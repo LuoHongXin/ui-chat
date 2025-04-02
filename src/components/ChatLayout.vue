@@ -2,7 +2,10 @@
   <div class="chat-container">
     <!-- 助理列表 -->
     <div class="assistant-list">
-      <el-card
+      <div class="logo-container">
+        <img src="../assets/logo-White.png" alt="logo" class="logo-image" />
+      </div>
+      <div
         v-for="assistant in assistants"
         :key="assistant.id"
         :class="[
@@ -12,33 +15,42 @@
         shadow="hover"
         @click="selectAssistant(assistant)"
       >
-        <div class="assistant-item-content">
-          <div class="assistant-avatar">
-            <img
-              :src="assistant.avatar || winhongAvatar"
-              :alt="assistant.name"
-            />
+        <el-tooltip
+          :content="assistant.description"
+          placement="top"
+          :hide-after="0"
+        >
+          <div class="assistant-item-content">
+            <div class="assistant-avatar">
+              <img
+                :src="assistant.avatar || winhongAvatar"
+                :alt="assistant.name"
+              />
+            </div>
+            <div class="assistant-info">
+              <div class="assistant-name">{{ assistant.name }}</div>
+            </div>
           </div>
-          <div class="assistant-info">
-            <div class="assistant-name">{{ assistant.name }}</div>
-            <div class="assistant-description">{{ assistant.description }}</div>
-          </div>
-        </div>
-      </el-card>
+        </el-tooltip>
+      </div>
     </div>
 
     <!-- 聊天记录列表 -->
     <div class="chat-history">
       <el-button
-        type="primary"
         @click="createNewChat"
         class="new-chat-btn"
         :disabled="!currentAssistant"
+        style="display: flex; justify-content: flex-start; gap: 8px"
       >
         <el-icon style="margin-right: 8px"><Plus /></el-icon>
         新建对话
       </el-button>
+      <div v-if="!currentAssistant?.chats?.length" class="empty-state">
+        暂无历史对话
+      </div>
       <el-card
+        v-else
         v-for="chat in currentAssistant?.chats || []"
         :key="chat.id"
         :class="['chat-history-item', { active: currentChat.id === chat.id }]"
@@ -159,7 +171,6 @@
 <script setup>
 import { ref, onMounted, nextTick } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { API_CONFIG } from "../config";
 import instance from "../utils/auth";
 import {
   Promotion,
@@ -456,30 +467,62 @@ function scrollToBottom() {
 
 <style lang="scss" scoped>
 .chat-container {
+  box-sizing: border-box;
+  padding: 8px 0;
   display: flex;
-  height: 100vh;
-  width: 100vw;
-  background-color: var(--chat-bg);
+  height: 100%;
+  width: 100%;
+  background-image: url("../assets/pageBg.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: transparent;
+  position: relative;
+  z-index: 0;
 }
 
 .assistant-list {
-  width: 200px;
-  background-color: var(--sidebar-bg);
+  width: 72px;
+  background-color: transparent;
   border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
-  padding: 16px;
+  padding: 12px;
+  position: relative;
+  padding-top: 100px;
+}
+
+.logo-container {
+  width: 72px;
+  position: absolute;
+  top: 12px;
+}
+
+.logo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .chat-history {
   width: 250px;
-  background-color: var(--sidebar-bg);
+  background-color: rgba(245, 245, 245, 1);
   border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   padding: 16px;
+  position: relative;
 }
 
+.empty-state {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color-secondary);
+  font-size: 14px;
+  color: #83878f;
+}
 .chat-main {
   flex: 1;
   display: flex;
@@ -553,7 +596,6 @@ function scrollToBottom() {
   border-radius: 8px;
 }
 
-.assistant-item,
 .chat-history-item {
   margin-bottom: 8px;
   background-color: transparent;
@@ -573,8 +615,12 @@ function scrollToBottom() {
     border: 1px solid var(--el-color-primary-light-7);
   }
 }
+.assistant-item {
+  width: 100%;
+  margin-bottom: 24px;
+  cursor: pointer;
+}
 
-.assistant-item-content,
 .chat-history-item-content {
   display: flex;
   align-items: center;
@@ -590,11 +636,41 @@ function scrollToBottom() {
     text-align: left;
   }
 }
-
+.assistant-item-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  fonts-size: 12px;
+  color: var(--assistant-text-color);
+  &:hover {
+    color: var(--assistant-text-light-color);
+    .assistant-avatar {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+  }
+  .assistant-avatar {
+    margin-bottom: 4px;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    img {
+      width: 24px;
+      height: 24px;
+      object-fit: contain;
+    }
+  }
+}
 .active {
   .chat-history-item-content,
   .assistant-item-content {
-    color: var(--el-color-primary-light-7);
+    color: var(--assistant-text-light-color);
+    .assistant-avatar {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
   }
 }
 
@@ -716,28 +792,11 @@ function scrollToBottom() {
     }
   }
 }
-.assistant-avatar {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  img {
-    width: 24px;
-    height: 24px;
-    object-fit: contain;
-  }
-}
 
 .assistant-info {
   .assistant-name {
     font-size: 14px;
     font-weight: bolder;
-  }
-  .assistant-description {
-    font-size: 12px;
-    font-weight: 400;
   }
 }
 

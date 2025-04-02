@@ -1,6 +1,10 @@
 // 主题变量
 :root {
-
+    --assistant-text-color: rgba(255, 255, 255, 0.7);
+    --assistant-text-light-color: rgba(255, 255, 255);
+    --el-border-color:	#d93934;
+    --el-text-color-regular:#d93934;
+    --el-fill-color-blank:#FFF3F0;
     // 暗黑主题（默认）
     &.dark-theme {
         --bg-color: #1a1a1a;
