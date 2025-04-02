@@ -46,6 +46,18 @@ export function generateState() {
 
 // 重定向到授权页面
 export function redirectToAuth() {
+    // 开发环境使用模拟token
+    if (import.meta.env.DEV) {
+        const authStore = useAuthStore();
+        authStore.token = 'dev_mock_token';
+        authStore.userInfo = {
+            name: 'Dev User',
+            email: 'dev@example.com'
+        };
+        return;
+    }
+
+    // 生产环境执行实际授权跳转
     const state = generateState();
     const authUrl = `https://account.qiyeyun.co/authorize?response_type=code&client_id=${API_CONFIG.appId}&scope=profile&state=${state}`;
     window.location.href = authUrl;

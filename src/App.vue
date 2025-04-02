@@ -9,6 +9,11 @@ const isTokenLoaded = ref(false);
 const authStore = useAuthStore();
 
 onMounted(async () => {
+  if (import.meta.env.DEV) {
+    isTokenLoaded.value = true;
+    return;
+  }
+
   const urlParams = new URLSearchParams(window.location.search);
   const code = urlParams.get("code");
   if (code) {
