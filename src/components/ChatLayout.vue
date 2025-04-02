@@ -541,13 +541,14 @@ function scrollToBottom() {
 
   .chat-input {
     padding: 24px;
-    border-top: 1px solid var(--border-color);
     background-color: var(--chat-bg);
-
+    display: flex;
+    align-items: center;
+    justify-content: center;
     .input-wrapper {
       display: flex;
       position: relative;
-      width: 100%;
+      width: 800px;
     }
   }
 }
@@ -676,7 +677,7 @@ function scrollToBottom() {
 
 .message {
   margin-bottom: 16px;
-
+  width: 800px;
   .message-wrapper {
     display: flex;
     align-items: flex-start;
