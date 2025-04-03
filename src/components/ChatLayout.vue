@@ -303,7 +303,7 @@ function scrollToBottom() {
 <style lang="scss" scoped>
 .chat-container {
   box-sizing: border-box;
-  padding: 8px 0;
+  padding: 8px 8px 8px 0;
   display: flex;
   height: 100%;
   width: 100%;

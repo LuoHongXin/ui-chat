@@ -12,7 +12,7 @@
     <div v-if="!currentAssistant?.chats?.length" class="empty-state">
       暂无历史对话
     </div>
-    <el-card
+    <div
       v-else
       v-for="chat in currentAssistant?.chats || []"
       :key="chat.id"
@@ -25,16 +25,14 @@
           <span class="chat-name">{{ chat.name }}</span>
         </el-tooltip>
         <el-tooltip content="删除" placement="top" :hide-after="0">
-          <el-button
-            type="danger"
-            size="small"
+          <el-icon
+            class="delete-icon"
             @click.stop="$emit('delete-chat', chat.id)"
-          >
-            <el-icon><Delete /></el-icon>
-          </el-button>
+            ><Delete
+          /></el-icon>
         </el-tooltip>
       </div>
-    </el-card>
+    </div>
   </div>
 </template>
 
@@ -85,11 +83,11 @@ defineEmits(["create-chat", "select-chat", "delete-chat"]);
 .chat-history-item {
   margin-bottom: 8px;
   background-color: transparent;
-  border: 1px solid var(--border-color);
   cursor: pointer;
   transition: all 0.3s ease;
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 8px 12px;
+  font-size: 14px;
   color: var(--message-text);
 
   &:hover {
@@ -97,8 +95,7 @@ defineEmits(["create-chat", "select-chat", "delete-chat"]);
   }
 
   &.active {
-    background-color: var(--message-bg);
-    border: 1px solid var(--el-color-primary-light-7);
+    background-color: var(--el-color-primary-light-2);
   }
 }
 
@@ -106,9 +103,12 @@ defineEmits(["create-chat", "select-chat", "delete-chat"]);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px;
   color: var(--message-text);
-
+  .delete-icon {
+    &:hover {
+      color: #d82f3a;
+    }
+  }
   .chat-name {
     flex: 1;
     overflow: hidden;

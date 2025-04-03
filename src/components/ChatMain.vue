@@ -7,11 +7,8 @@
         class="message"
       >
         <div :class="['message-wrapper', message.role]">
-          <div class="avatar">
-            <img
-              :src="message.role === 'user' ? userAvatar : aiAvatar"
-              :alt="message.role"
-            />
+          <div class="avatar" v-if="message.role === 'assistant'">
+            <img :src="aiAvatar" alt="assistant" />
           </div>
           <div class="message-actions" :class="message.role">
             <el-button-group v-if="message.role === 'user'">
@@ -51,6 +48,24 @@
                   @click="$emit('copy-message', message)"
                 >
                   <el-icon><CopyDocument /></el-icon>
+                </el-button>
+              </el-tooltip>
+              <el-tooltip content="喜欢" placement="top" :hide-after="0">
+                <el-button
+                  size="small"
+                  text
+                  @click="$emit('like-message', message)"
+                >
+                  <el-icon><Star /></el-icon>
+                </el-button>
+              </el-tooltip>
+              <el-tooltip content="不喜欢" placement="top" :hide-after="0">
+                <el-button
+                  size="small"
+                  text
+                  @click="$emit('dislike-message', message)"
+                >
+                  <el-icon><CircleClose /></el-icon>
                 </el-button>
               </el-tooltip>
             </el-button-group>
@@ -133,6 +148,8 @@ import {
   CopyDocument,
   Refresh,
   Loading,
+  Star,
+  CircleClose,
 } from "@element-plus/icons-vue";
 import aiAvatar from "../assets/ai-avatar.svg";
 import userAvatar from "../assets/user-avatar.svg";
@@ -157,6 +174,8 @@ const emit = defineEmits([
   "copy-message",
   "regenerate-message",
   "delete-message",
+  "like-message",
+  "dislike-message",
 ]);
 
 function removeThinkContent(content) {
@@ -197,6 +216,12 @@ function handleSendMessage(isTemp) {
     display: flex;
     flex-direction: column;
     align-items: center;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 
   .chat-input {
@@ -266,11 +291,13 @@ function handleSendMessage(isTemp) {
     flex-direction: row-reverse;
 
     .message-content {
-      margin-right: 12px;
+      margin-right: 0;
+      background-color: #f2f3f5;
     }
 
     .message-actions {
-      right: 60px;
+      right: 16px;
+      bottom: -24px;
     }
   }
 
@@ -281,91 +308,86 @@ function handleSendMessage(isTemp) {
 
     .message-actions {
       left: 60px;
+      bottom: -24px;
     }
   }
-
   &:hover .message-actions {
     display: flex;
     gap: 4px;
     padding: 4px;
   }
+}
 
-  .avatar {
-    width: 32px;
-    height: 32px;
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--chat-bg);
+}
+
+.message-actions {
+  position: absolute;
+  display: none;
+  z-index: 10;
+  :deep(.el-button--small) {
     border-radius: 4px;
-    overflow: hidden;
+    padding: 4px;
+    margin-right: 4px;
+  }
+  :deep(.el-button) {
+    color: var(--message-text);
+  }
+}
+
+.message-content {
+  word-break: break-word;
+  padding: 8px 16px;
+  border-radius: 12px;
+  max-width: 70%;
+  position: relative;
+  text-align: left;
+  font-size: 16px;
+  :deep(p) {
+    margin: 0;
+  }
+
+  :deep(pre) {
+    background-color: var(--code-bg);
+    padding: 1em;
+    border-radius: 4px;
+    overflow-x: auto;
+  }
+
+  :deep(code) {
+    font-family: monospace;
+    background-color: var(--code-bg);
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+  }
+
+  :deep(ul),
+  :deep(ol) {
+    padding-left: 1.5em;
+    margin: 0.5em 0;
+  }
+
+  :deep(blockquote) {
+    margin: 0.5em 0;
+    padding-left: 1em;
+    border-left: 4px solid var(--border-color);
+    color: var(--text-color-secondary);
+  }
+
+  &.loading {
     display: flex;
     align-items: center;
-    justify-content: center;
-    background-color: var(--chat-bg);
-  }
-
-  .message-actions {
-    position: absolute;
-    top: -6px;
-    display: none;
-    background: var(--sidebar-bg);
-    border-radius: 4px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    z-index: 10;
-
-    :deep(.el-button) {
-      color: var(--message-text);
-    }
-  }
-
-  .message-content {
-    word-break: break-word;
-    padding: 10px 14px;
-    border-radius: 4px;
-    background-color: var(--message-bg);
-    max-width: 70%;
-    position: relative;
-    text-align: left;
-
-    :deep(p) {
-      margin: 0.5em 0;
-    }
-
-    :deep(pre) {
-      background-color: var(--code-bg);
-      padding: 1em;
-      border-radius: 4px;
-      overflow-x: auto;
-    }
-
-    :deep(code) {
-      font-family: monospace;
-      background-color: var(--code-bg);
-      padding: 0.2em 0.4em;
-      border-radius: 3px;
-    }
-
-    :deep(ul),
-    :deep(ol) {
-      padding-left: 1.5em;
-      margin: 0.5em 0;
-    }
-
-    :deep(blockquote) {
-      margin: 0.5em 0;
-      padding-left: 1em;
-      border-left: 4px solid var(--border-color);
-      color: var(--text-color-secondary);
-    }
-
-    &.has-actions {
-      margin-top: 24px;
-    }
-
-    &.loading {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      .is-loading {
-        animation: rotating 2s linear infinite;
-      }
+    gap: 8px;
+    .is-loading {
+      animation: rotating 2s linear infinite;
     }
   }
 }
