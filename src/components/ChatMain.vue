@@ -84,14 +84,14 @@
             type="textarea"
             :rows="3"
             placeholder="请输入消息"
-            @keyup.enter="$emit('send-message', messageInput)"
+            @keyup.enter="handleSendMessage(true)"
             class="message-textarea"
           />
           <el-tooltip content="发送" placement="top" :hide-after="0">
             <el-button
               type="primary"
               class="send-button"
-              @click="$emit('send-message', messageInput)"
+              @click="handleSendMessage(true)"
               :disabled="!messageInput.trim()"
             >
               <el-icon><SendIcon /></el-icon>
@@ -107,14 +107,14 @@
           type="textarea"
           :rows="3"
           placeholder="请输入消息"
-          @keyup.enter="$emit('send-message', messageInput)"
+          @keyup.enter="handleSendMessage()"
           class="message-textarea"
         />
         <el-tooltip content="发送" placement="top" :hide-after="0">
           <el-button
             type="primary"
             class="send-button"
-            @click="$emit('send-message', messageInput)"
+            @click="handleSendMessage()"
             :disabled="!messageInput.trim()"
           >
             <el-icon><SendIcon /></el-icon>
@@ -152,7 +152,7 @@ defineProps({
   },
 });
 
-defineEmits([
+const emit = defineEmits([
   "send-message",
   "copy-message",
   "regenerate-message",
@@ -160,7 +160,22 @@ defineEmits([
 ]);
 
 function removeThinkContent(content) {
+  console.log(content, 6666);
+  if (!content) return "";
+  try {
+    const jsonData = JSON.parse(content);
+    if (jsonData.data?.data?.answer) {
+      return jsonData.data.data.answer;
+    }
+  } catch (e) {
+    // 非 JSON 格式，使用原有逻辑处理
+  }
   return content.replace(/<think>.*?<\/think>/gs, "").replace(/##\d+\$\$/g, "");
+}
+
+function handleSendMessage(isTemp) {
+  emit("send-message", messageInput.value, isTemp);
+  messageInput.value = "";
 }
 </script>
 

@@ -187,7 +187,10 @@ function selectChat(chat) {
 }
 
 // 消息管理
-async function sendMessage(value) {
+async function sendMessage(value, isNew) {
+  if (isNew) {
+    createNewChat();
+  }
   if (!value.trim()) return;
   if (!currentAssistant.value) {
     ElMessage.warning("请先选择一个助理");
