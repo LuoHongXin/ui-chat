@@ -116,11 +116,15 @@ function createNewChat() {
 
 async function deleteChat(id) {
   try {
-    await ElMessageBox.confirm("确定删除吗?", "提示", {
-      confirmButtonText: "确定",
-      cancelButtonText: "取消",
-      type: "warning",
-    });
+    await ElMessageBox.confirm(
+      "删除后，聊天记录将不可恢复。",
+      "确定删除对话？",
+      {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      }
+    );
 
     const chat = currentAssistant.value.chats.find((c) => c.id === id);
     if (chat && chat.isTemp) {
@@ -307,7 +311,7 @@ function scrollToBottom() {
   display: flex;
   height: 100%;
   width: 100%;
-  background-image: url("../assets/pageBg.png");
+  background-image: url("../assets/pageBg.svg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

@@ -30,7 +30,7 @@
                   <el-icon><Refresh /></el-icon>
                 </el-button>
               </el-tooltip>
-              <el-tooltip content="删除" placement="top" :hide-after="0">
+              <!-- <el-tooltip content="删除" placement="top" :hide-after="0">
                 <el-button
                   size="small"
                   text
@@ -38,7 +38,7 @@
                   @click="$emit('delete-message', message)"
                   ><el-icon><Delete /></el-icon
                 ></el-button>
-              </el-tooltip>
+              </el-tooltip> -->
             </el-button-group>
             <el-button-group v-else>
               <el-tooltip content="复制" placement="top" :hide-after="0">
@@ -56,7 +56,7 @@
                   text
                   @click="$emit('like-message', message)"
                 >
-                  <el-icon><Star /></el-icon>
+                  <el-icon><img :src="likeStar" alt="assistant" /></el-icon>
                 </el-button>
               </el-tooltip>
               <el-tooltip content="不喜欢" placement="top" :hide-after="0">
@@ -65,7 +65,7 @@
                   text
                   @click="$emit('dislike-message', message)"
                 >
-                  <el-icon><CircleClose /></el-icon>
+                  <el-icon><img :src="unLikeStar" alt="assistant" /></el-icon>
                 </el-button>
               </el-tooltip>
             </el-button-group>
@@ -152,7 +152,9 @@ import {
   CircleClose,
 } from "@element-plus/icons-vue";
 import aiAvatar from "../assets/ai-avatar.svg";
-import userAvatar from "../assets/user-avatar.svg";
+import unLikeStar from "../assets/thumb-down-line.svg";
+import likeStar from "../assets/thumb-up-line.svg";
+// import userAvatar from "../assets/user-avatar.svg";
 import MarkdownIt from "markdown-it";
 
 const md = new MarkdownIt();

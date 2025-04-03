@@ -2,9 +2,24 @@
 :root {
     --assistant-text-color: rgba(255, 255, 255, 0.7);
     --assistant-text-light-color: rgba(255, 255, 255);
-    --el-border-color:	#d93934;
-    --el-text-color-regular:#d93934;
-    --el-fill-color-blank:#FFF3F0;
+    --el-border-color:	#dcdfe6;
+    --el-text-color-regular:#454852;
+    --el-fill-color-blank:#FAFBFC;
+    .el-message-box__message {
+        color:#83878F ;
+    }
+    .el-button:hover {
+        background-color: unset;
+        border-color: #83878f;
+        color: #454852;
+        outline: none;
+    }
+    .el-button.el-button--primary:hover {
+        background-color: #e6655c;
+        border-color: #e6655c;
+        color: #fff;
+        outline: none;
+    }
     // 暗黑主题（默认）
     &.dark-theme {
         --bg-color: #1a1a1a;

@@ -1,7 +1,7 @@
 <template>
   <div class="assistant-list">
     <div class="logo-container">
-      <img src="../assets/logo-White.png" alt="logo" class="logo-image" />
+      <img src="../assets/logo-White.svg" alt="logo" class="logo-image" />
     </div>
     <div
       v-for="assistant in assistants"
@@ -21,7 +21,7 @@
         <div class="assistant-item-content">
           <div class="assistant-avatar">
             <img
-              :src="assistant.avatar || winhongAvatar"
+              :src="assistant.avatar || assistantAvatar"
               :alt="assistant.name"
             />
           </div>
@@ -35,7 +35,7 @@
 </template>
 
 <script setup>
-import winhongAvatar from "../assets/winhong.ico";
+import assistantAvatar from "../assets/assistant-avatar.svg";
 
 defineProps({
   assistants: {
@@ -92,6 +92,9 @@ defineEmits(["select-assistant"]);
     color: var(--assistant-text-light-color);
     .assistant-avatar {
       background-color: rgba(255, 255, 255, 0.2);
+      img {
+        opacity: 1;
+      }
     }
   }
   .assistant-avatar {
@@ -106,6 +109,7 @@ defineEmits(["select-assistant"]);
       width: 24px;
       height: 24px;
       object-fit: contain;
+      opacity: 0.4;
     }
   }
 }
@@ -115,6 +119,9 @@ defineEmits(["select-assistant"]);
     color: var(--assistant-text-light-color);
     .assistant-avatar {
       background-color: rgba(255, 255, 255, 0.2);
+      img {
+        opacity: 1;
+      }
     }
   }
 }

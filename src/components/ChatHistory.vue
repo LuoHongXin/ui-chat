@@ -3,6 +3,7 @@
     <el-button
       @click="$emit('create-chat')"
       class="new-chat-btn"
+      type="primary"
       :disabled="!currentAssistant"
       style="display: flex; justify-content: flex-start; gap: 8px"
     >
