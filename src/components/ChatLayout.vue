@@ -19,6 +19,7 @@
       @copy-message="copyMessage"
       @regenerate-message="regenerateMessage"
       @delete-message="deleteMessage"
+      @update-loading="updateLoadingStatus"
     />
   </div>
 </template>
@@ -44,6 +45,11 @@ const currentAssistant = ref(null);
 const currentChat = ref({ id: null, messages: [] });
 const isLoading = ref(false);
 
+// 更新loading状态
+function updateLoadingStatus(status) {
+  isLoading.value = status;
+}
+
 // 从API加载数据
 onMounted(() => {
   loadAssistants();
@@ -68,8 +74,19 @@ async function loadAssistants() {
   }
 }
 
-async function loadChats(assistantId) {
+async function loadChats(assistantId, sessionId) {
   try {
+    // 如果提供了sessionId，只获取特定会话的聊天记录
+    if (sessionId) {
+      const response = await instance.get(
+        `/api/v1/chats/${assistantId}/sessions?page=1&page_size=100&orderby=update_time&desc=false&id=${sessionId}`
+      );
+      if (response.data.code === 0) {
+        return response.data.data;
+      }
+      return [];
+    }
+
     // 获取用户会话记录
     const sessions = await getUserSessions(authStore.userInfo.id, assistantId);
     if (!sessions || sessions.length === 0) {
@@ -223,8 +240,14 @@ async function selectAssistant(assistant) {
   currentChat.value = chats.length > 0 ? chats[0] : { id: null, messages: [] };
 }
 
-function selectChat(chat) {
-  currentChat.value = chat;
+async function selectChat(chat) {
+  if (!currentAssistant.value) return;
+  const updatedChats = await loadChats(currentAssistant.value.id, chat.id);
+  if (updatedChats && updatedChats.length > 0) {
+    currentChat.value = updatedChats[0];
+  } else {
+    currentChat.value = chat;
+  }
   scrollToBottom();
 }
 
@@ -239,19 +262,25 @@ async function sendMessage(value, isNew) {
     return;
   }
 
+  // 记录发送消息时的对话ID
+  const originalChatId = currentChat.value.id;
   const userMessage = {
     role: "user",
     content: value,
     id: Date.now().toString(),
   };
-  currentChat.value.messages.push(userMessage);
+
+  // 确保当前对话仍然是发送消息时的对话
+  if (currentChat.value.id === originalChatId) {
+    currentChat.value.messages.push(userMessage);
+  }
   const originalInput = value;
   isLoading.value = true;
 
   scrollToBottom();
 
   try {
-    let sessionId = currentChat.value.id;
+    let sessionId = originalChatId;
     if (currentChat.value.isTemp) {
       // 新建对话
       const createSessionResponse = await instance.post(
@@ -272,8 +301,11 @@ async function sendMessage(value, isNew) {
 
       if (createSessionResponse.data.code === 0) {
         sessionId = createSessionResponse.data.data.id;
-        currentChat.value.id = sessionId;
-        currentChat.value.isTemp = false;
+        // 确保当前对话仍然是发送消息时的对话
+        if (currentChat.value.id === originalChatId) {
+          currentChat.value.id = sessionId;
+          currentChat.value.isTemp = false;
+        }
 
         // 创建用户会话记录
         await createUserSession({
@@ -285,7 +317,10 @@ async function sendMessage(value, isNew) {
         });
       } else {
         ElMessage.error("创建会话失败");
-        currentChat.value.messages.pop();
+        // 确保当前对话仍然是发送消息时的对话
+        if (currentChat.value.id === originalChatId) {
+          currentChat.value.messages.pop();
+        }
         return;
       }
     }
@@ -305,19 +340,31 @@ async function sendMessage(value, isNew) {
         content: response.data.data.answer,
         id: response.data.data.id,
       };
-      currentChat.value.messages.push(aiMessage);
-      scrollToBottom();
+      // 确保当前对话仍然是发送消息时的对话
+      if (currentChat.value.id === originalChatId) {
+        currentChat.value.messages.push(aiMessage);
+        scrollToBottom();
+      }
     } else {
       ElMessage.error("获取AI回答失败");
-      currentChat.value.messages.pop();
+      // 确保当前对话仍然是发送消息时的对话
+      if (currentChat.value.id === originalChatId) {
+        currentChat.value.messages.pop();
+      }
     }
   } catch (error) {
     console.error("发送消息失败:", error);
     ElMessage.error("发送消息失败");
-    currentChat.value.messages.pop();
+    // 确保当前对话仍然是发送消息时的对话
+    if (currentChat.value.id === originalChatId) {
+      currentChat.value.messages.pop();
+    }
   } finally {
     isLoading.value = false;
-    scrollToBottom();
+    // 确保当前对话仍然是发送消息时的对话
+    if (currentChat.value.id === originalChatId) {
+      scrollToBottom();
+    }
   }
 }
 

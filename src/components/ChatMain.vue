@@ -141,7 +141,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import {
   Promotion as SendIcon,
   Delete,
@@ -183,7 +183,19 @@ const emit = defineEmits([
   "delete-message",
   "like-message",
   "dislike-message",
+  "update-loading",
 ]);
+
+// 监听currentChat的变化
+watch(
+  () => props.currentChat.id,
+  (newId, oldId) => {
+    if (newId !== oldId) {
+      // 切换对话时，通知父组件更新loading状态
+      emit("update-loading", false);
+    }
+  }
+);
 
 function removeThinkContent(content) {
   if (!content) return "";
