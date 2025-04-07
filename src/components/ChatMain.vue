@@ -181,7 +181,6 @@ const emit = defineEmits([
 ]);
 
 function removeThinkContent(content) {
-  console.log(content, 6666);
   if (!content) return "";
   try {
     const jsonData = JSON.parse(content);

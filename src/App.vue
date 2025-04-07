@@ -3,7 +3,6 @@ import ChatLayout from "./components/ChatLayout.vue";
 import { useAuthStore } from "./stores/auth";
 import { redirectToAuth } from "./utils/auth";
 import { onMounted, ref } from "vue";
-
 const isTokenLoaded = ref(false);
 
 const authStore = useAuthStore();

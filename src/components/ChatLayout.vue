@@ -30,6 +30,13 @@ import instance from "../utils/auth";
 import AssistantList from "./AssistantList.vue";
 import ChatHistory from "./ChatHistory.vue";
 import ChatMain from "./ChatMain.vue";
+import {
+  getUserSessions,
+  createUserSession,
+  deleteUserSession,
+} from "../utils/sessions";
+import { useAuthStore } from "../stores/auth";
+const authStore = useAuthStore();
 
 // 状态管理
 const assistants = ref([]);
@@ -63,15 +70,26 @@ async function loadAssistants() {
 
 async function loadChats(assistantId) {
   try {
-    const response = await instance.get(
-      `/api/v1/chats/${assistantId}/sessions?page=1&page_size=100&orderby=update_time&desc=false`
-    );
-    if (response.data.code === 0) {
-      return response.data.data;
-    } else {
-      ElMessage.error("获取对话列表失败");
+    // 获取用户会话记录
+    const sessions = await getUserSessions(authStore.userInfo.id, assistantId);
+    if (!sessions || sessions.length === 0) {
       return [];
     }
+    // 根据每个会话ID获取聊天记录
+    let allChats = [];
+    for (const session of sessions) {
+      try {
+        const response = await instance.get(
+          `/api/v1/chats/${assistantId}/sessions?page=1&page_size=100&orderby=update_time&desc=false&id=${session.sessionId}`
+        );
+        if (response.data.code === 0) {
+          allChats = [...response.data.data, ...allChats];
+        }
+      } catch (error) {
+        console.error(`获取会话 ${session.SessionID} 的聊天记录失败:`, error);
+      }
+    }
+    return allChats;
   } catch (error) {
     console.error("加载对话列表失败:", error);
     ElMessage.error("加载对话列表失败");
@@ -91,8 +109,18 @@ function generateRandomId() {
 }
 
 // 聊天记录管理
-function createNewChat() {
-  if (!currentAssistant.value) return;
+async function createNewChat() {
+  if (currentChat.value && currentChat.value.isTemp) return;
+  // 检查现有对话数量，如果达到三个，提示用户删除旧对话
+  if (
+    currentAssistant.value.chats &&
+    currentAssistant.value.chats.length >= 3
+  ) {
+    ElMessage.warning(
+      "您已创建3个对话，达到上限。请删除一个旧对话后再创建新会话。"
+    );
+    return;
+  }
 
   const newChat = {
     id: generateRandomId(),
@@ -114,17 +142,19 @@ function createNewChat() {
   currentChat.value = newChat;
 }
 
-async function deleteChat(id) {
+async function deleteChat(id, skipConfirm = false) {
   try {
-    await ElMessageBox.confirm(
-      "删除后，聊天记录将不可恢复。",
-      "确定删除对话？",
-      {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning",
-      }
-    );
+    if (!skipConfirm) {
+      await ElMessageBox.confirm(
+        "删除后，聊天记录将不可恢复。",
+        "确定删除对话？",
+        {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type: "warning",
+        }
+      );
+    }
 
     const chat = currentAssistant.value.chats.find((c) => c.id === id);
     if (chat && chat.isTemp) {
@@ -138,8 +168,9 @@ async function deleteChat(id) {
             ? currentAssistant.value.chats[0]
             : { id: null, messages: [] };
       }
-
-      ElMessage.success("对话删除成功");
+      if (!skipConfirm) {
+        ElMessage.success("对话删除成功");
+      }
       return;
     }
 
@@ -162,6 +193,13 @@ async function deleteChat(id) {
           currentAssistant.value.chats.length > 0
             ? currentAssistant.value.chats[0]
             : { id: null, messages: [] };
+      }
+
+      // 删除用户会话记录
+      try {
+        await deleteUserSession(id);
+      } catch (error) {
+        console.error("删除用户会话记录失败:", error);
       }
 
       ElMessage.success("对话删除成功");
@@ -215,6 +253,7 @@ async function sendMessage(value, isNew) {
   try {
     let sessionId = currentChat.value.id;
     if (currentChat.value.isTemp) {
+      // 新建对话
       const createSessionResponse = await instance.post(
         `/api/v1/chats/${currentAssistant.value.id}/sessions`,
         {
@@ -235,6 +274,15 @@ async function sendMessage(value, isNew) {
         sessionId = createSessionResponse.data.data.id;
         currentChat.value.id = sessionId;
         currentChat.value.isTemp = false;
+
+        // 创建用户会话记录
+        await createUserSession({
+          chatId: currentAssistant.value.id,
+          sessionId: sessionId,
+          userId: authStore.userInfo.id,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        });
       } else {
         ElMessage.error("创建会话失败");
         currentChat.value.messages.pop();
