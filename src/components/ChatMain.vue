@@ -60,11 +60,7 @@
                 </el-button>
               </el-tooltip>
               <el-tooltip content="不喜欢" placement="top" :hide-after="0">
-                <el-button
-                  size="small"
-                  text
-                  @click="$emit('dislike-message', message)"
-                >
+                <el-button size="small" text @click="handleDislike(message)">
                   <el-icon><img :src="unLikeStar" alt="assistant" /></el-icon>
                 </el-button>
               </el-tooltip>
@@ -115,6 +111,10 @@
         </div>
       </div>
     </div>
+    <FeedbackDialog
+      v-model:visible="showFeedbackDialog"
+      @submit="handleFeedbackSubmit"
+    />
     <div v-if="currentChat.messages.length > 0" class="chat-input">
       <div class="input-wrapper">
         <el-input
@@ -151,16 +151,21 @@ import {
   Star,
   CircleClose,
 } from "@element-plus/icons-vue";
+import { postUnsatisfiedResponse } from "../utils/sessions";
+import FeedbackDialog from "./FeedbackDialog.vue";
 import aiAvatar from "../assets/ai-avatar.svg";
 import unLikeStar from "../assets/thumb-down-line.svg";
 import likeStar from "../assets/thumb-up-line.svg";
 // import userAvatar from "../assets/user-avatar.svg";
 import MarkdownIt from "markdown-it";
+import { useAuthStore } from "../stores/auth";
+const authStore = useAuthStore();
 
 const md = new MarkdownIt();
 const messageInput = ref("");
+const showFeedbackDialog = ref(false);
 
-defineProps({
+const props = defineProps({
   currentChat: {
     type: Object,
     default: () => ({ id: null, messages: [] }),
@@ -197,6 +202,32 @@ function handleSendMessage(isTemp) {
   emit("send-message", messageInput.value, isTemp);
   messageInput.value = "";
 }
+
+async function handleFeedbackSubmit(feedback) {
+  try {
+    await postUnsatisfiedResponse({
+      ...feedbackData.value,
+      ...feedback,
+    });
+    showFeedbackDialog.value = false;
+    feedbackData.value = null;
+  } catch (error) {
+    console.error("提交反馈失败:", error);
+  }
+}
+
+const feedbackData = ref(null);
+
+const handleDislike = (message) => {
+  feedbackData.value = {
+    content: message.content,
+    userId: authStore.userInfo.id,
+    chatId: props.currentChat.chat_id,
+    sessionId: props.currentChat.id,
+  };
+  showFeedbackDialog.value = true;
+  emit("dislike-message", message);
+};
 </script>
 
 <style lang="scss" scoped>

@@ -4,7 +4,7 @@ import { fetchToken, fetchUserInfo } from '../utils/auth';
 export const useAuthStore = defineStore('auth', {
     state: () => ({
         token: null,
-        userInfo: {
+        userInfo: import.meta.env.DEV ? {
             "id": "1145",
             "email": "luohx@winhong.com",
             "phone": "15360755056",
@@ -21,7 +21,7 @@ export const useAuthStore = defineStore('auth', {
                 "name": null,
                 "type": "INTERNAL"
             }
-        },
+        } : null,
         code: null
     }),
     actions: {

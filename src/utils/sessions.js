@@ -39,7 +39,7 @@ export async function createUserSession(sessionData) {
 export async function getUserSessions(userId, chatId) {
     try {
         const response = await instance.get(
-            `${import.meta.env.VITE_CURL_SERVER || API_CONFIG.CURL_SERVER}/user-sessions?UserID=${userId}&ChatID=${chatId}`
+            `${import.meta.env.VITE_CURL_SERVER || API_CONFIG.CURL_SERVER}/user-sessions?userId=${userId}&chatId=${chatId}`
         );
         if (response.status === 200) {
             return response.data;
@@ -71,6 +71,32 @@ export async function deleteUserSession(id) {
         }
     } catch (error) {
         console.error("Error deleting user session:", error);
+        throw error;
+    }
+}
+
+/**
+ * 提交用户不满意反馈
+ * @param {Object} feedbackData - 反馈数据
+ * @param {string} feedbackData.messageId - 消息ID
+ * @param {string} feedbackData.userId - 用户ID
+ * @param {string} feedbackData.content - 反馈内容
+ * @returns {Promise<Object>} 返回提交反馈的响应
+ */
+export async function postUnsatisfiedResponse(feedbackData) {
+    try {
+        const response = await instance.post(
+            `${import.meta.env.VITE_CURL_SERVER || API_CONFIG.CURL_SERVER}/unsatisfied-responses`,
+            feedbackData
+        );
+        if (response.status === 201) {
+            return response;
+        } else {
+            console.error("Failed to submit unsatisfied response");
+            throw new Error("Failed to submit unsatisfied response");
+        }
+    } catch (error) {
+        console.error("Error submitting unsatisfied response:", error);
         throw error;
     }
 }
