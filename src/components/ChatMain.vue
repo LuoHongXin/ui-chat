@@ -232,7 +232,7 @@ const feedbackData = ref(null);
 
 const handleDislike = (message) => {
   feedbackData.value = {
-    content: message.content,
+    aiAnswer: message.content,
     userId: authStore.userInfo.id,
     chatId: props.currentChat.chat_id,
     sessionId: props.currentChat.id,
