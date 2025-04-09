@@ -190,7 +190,7 @@ const emit = defineEmits([
 watch(
   () => props.currentChat.id,
   (newId, oldId) => {
-    if (newId !== oldId) {
+    if (oldId && newId !== oldId && !oldId.includes("temp")) {
       // 切换对话时，通知父组件更新loading状态
       emit("update-loading", false);
     }

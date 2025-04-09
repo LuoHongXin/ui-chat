@@ -1,4 +1,7 @@
-import instance from "./auth";
+import axios from 'axios';
+const instance = axios.create({
+    timeout: 10000
+});
 import { API_CONFIG } from '../config';
 
 /**

@@ -140,7 +140,7 @@ async function createNewChat() {
   }
 
   const newChat = {
-    id: generateRandomId(),
+    id: generateRandomId() + "_temp",
     name: `新对话 ${(currentAssistant.value.chats || []).length + 1}`,
     messages: [
       {
@@ -263,7 +263,7 @@ async function sendMessage(value, isNew) {
   }
 
   // 记录发送消息时的对话ID
-  const originalChatId = currentChat.value.id;
+  let originalChatId = currentChat.value.id;
   const userMessage = {
     role: "user",
     content: value,
@@ -280,13 +280,11 @@ async function sendMessage(value, isNew) {
   scrollToBottom();
 
   try {
-    let sessionId = originalChatId;
     if (currentChat.value.isTemp) {
       // 新建对话
       const createSessionResponse = await instance.post(
         `/api/v1/chats/${currentAssistant.value.id}/sessions`,
         {
-          conversation_id: sessionId,
           dialog_id: currentAssistant.value.id,
           is_new: true,
           message: [
@@ -300,17 +298,17 @@ async function sendMessage(value, isNew) {
       );
 
       if (createSessionResponse.data.code === 0) {
-        sessionId = createSessionResponse.data.data.id;
+        originalChatId = createSessionResponse.data.data.id;
         // 确保当前对话仍然是发送消息时的对话
         if (currentChat.value.id === originalChatId) {
-          currentChat.value.id = sessionId;
+          currentChat.value.id = originalChatId; // 更新对话ID
           currentChat.value.isTemp = false;
         }
 
         // 创建用户会话记录
         await createUserSession({
           chatId: currentAssistant.value.id,
-          sessionId: sessionId,
+          sessionId: originalChatId,
           userId: authStore.userInfo.id,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
@@ -324,16 +322,14 @@ async function sendMessage(value, isNew) {
         return;
       }
     }
-
     const response = await instance.post(
       `/api/v1/chats/${currentAssistant.value.id}/completions`,
       {
         question: originalInput,
-        session_id: sessionId,
+        session_id: originalChatId,
         stream: false,
       }
     );
-
     if (response.data.code === 0) {
       const aiMessage = {
         role: "assistant",
