@@ -12,14 +12,14 @@ const apiInstance = axios.create({
     baseURL: API_CONFIG.API_SERVER,
     timeout: API_CONFIG.timeout,
     headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${API_CONFIG.API_KEY}`
     }
 });
 
 // API实例的请求拦截器
 apiInstance.interceptors.request.use(
     config => {
-        config.headers['Authorization'] = `Bearer ${API_CONFIG.API_KEY}`;
         return config;
     },
     error => {

@@ -252,6 +252,8 @@ async function selectChat(chat) {
 }
 
 // 消息管理
+import { fetchEventSource } from "@microsoft/fetch-event-source";
+
 async function sendMessage(value, isNew) {
   if (isNew) {
     createNewChat();
@@ -322,33 +324,67 @@ async function sendMessage(value, isNew) {
         return;
       }
     }
-    const response = await instance.post(
-      `/api/v1/chats/${currentAssistant.value.id}/completions`,
+
+    // 创建AI消息对象
+    const aiMessage = {
+      role: "assistant",
+      content: "",
+      id: Date.now().toString(),
+    };
+
+    // 获取token
+    const headers = instance.defaults.headers;
+    const baseUrl = instance.defaults.baseURL || "";
+    // 使用fetchEventSource处理流式响应
+    await fetchEventSource(
+      `${baseUrl}/api/v1/chats/${currentAssistant.value.id}/completions`,
       {
-        question: originalInput,
-        session_id: originalChatId,
-        stream: false,
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          question: originalInput,
+          session_id: originalChatId,
+          stream: true,
+        }),
+        // onopen() {
+        // },
+        onmessage(event) {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.code === 0 && currentChat.value.id === originalChatId) {
+              // 更新AI回答内容，使用响应式API确保界面实时更新
+              const answer = data.data.answer;
+              if (answer) {
+                const thinkIndex = answer.lastIndexOf("</think>");
+                const finalAnswer =
+                  thinkIndex !== -1 ? answer.substring(thinkIndex + 8) : null;
+                if (finalAnswer) {
+                  if (isLoading.value) {
+                    // 有值显示才去掉加载动画
+                    isLoading.value = false;
+                    // 确保当前对话仍然是发送消息时的对话
+                    currentChat.value.messages.push(aiMessage);
+                  }
+                  currentChat.value.messages[
+                    currentChat.value.messages.length - 1
+                  ].content = finalAnswer;
+                }
+              }
+              scrollToBottom();
+            }
+          } catch (error) {
+            console.error("解析消息失败:", error);
+          }
+        },
+        onerror(error) {
+          console.error("流式响应错误:", error);
+          ElMessage.error("获取AI回答失败");
+          if (currentChat.value.id === originalChatId) {
+            currentChat.value.messages.pop();
+          }
+        },
       }
     );
-    if (response.data.code === 0) {
-      const aiMessage = {
-        role: "assistant",
-        content: response.data.data.answer,
-        id: response.data.data.id,
-      };
-      console.log("AI回答:", currentChat.value.id, originalChatId);
-      // 确保当前对话仍然是发送消息时的对话
-      if (currentChat.value.id === originalChatId) {
-        currentChat.value.messages.push(aiMessage);
-        scrollToBottom();
-      }
-    } else {
-      ElMessage.error("获取AI回答失败");
-      // 确保当前对话仍然是发送消息时的对话
-      if (currentChat.value.id === originalChatId) {
-        currentChat.value.messages.pop();
-      }
-    }
   } catch (error) {
     console.error("发送消息失败:", error);
     ElMessage.error("发送消息失败");

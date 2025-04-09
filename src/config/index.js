@@ -15,8 +15,8 @@ export const API_CONFIG = {
     // API密钥，需要替换为实际的API Key
     API_KEY: 'ragflow-k4NjEzYWJjMGExZDExZjA4ZjdkYmUyNG',
     // 保存服务器地址，默认使用本地测试服务器
-    CURL_SERVER: 'http://rag-backend.192.168.101.190.nip.io',
-    // CURL_SERVER: '',
+    // CURL_SERVER: 'http://rag-backend.192.168.101.190.nip.io',
+    CURL_SERVER: '',
     authorization: 'ImNlOGJlZWFhMGM3YzExZjA4OTMxMzJjMGIyNWZlMDQ4Ig.Z-e3lg.blIpuKoeqEl9ExJxPOwfi-YJC58'
 };
 
