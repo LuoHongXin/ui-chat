@@ -403,8 +403,7 @@ function scrollToBottom() {
   height: 100%;
   width: 100%;
   background-image: url("../assets/pageBg.svg");
-  background-size: cover;
-  background-position: center;
+  background-size: auto;
   background-repeat: no-repeat;
   background-color: transparent;
   position: relative;

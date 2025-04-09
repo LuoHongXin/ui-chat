@@ -27,6 +27,7 @@
           </div>
           <div class="assistant-info">
             <div class="assistant-name">{{ assistant.name }}</div>
+            <div class="assistant-description">{{ assistant.description }}</div>
           </div>
         </div>
       </el-tooltip>
@@ -53,7 +54,7 @@ defineEmits(["select-assistant"]);
 
 <style lang="scss" scoped>
 .assistant-list {
-  width: 72px;
+  width: 240px;
   background-color: transparent;
   border-right: 1px solid var(--border-color);
   display: flex;
@@ -64,9 +65,11 @@ defineEmits(["select-assistant"]);
 }
 
 .logo-container {
-  width: 72px;
+  width: 165px;
   position: absolute;
   top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .logo-image {
@@ -83,28 +86,29 @@ defineEmits(["select-assistant"]);
 
 .assistant-item-content {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   fonts-size: 12px;
+  border-radius: 12px;
+  padding: 8px 10px;
   color: var(--assistant-text-color);
   &:hover {
     color: var(--assistant-text-light-color);
+    background-color: rgba(255, 255, 255, 0.2);
     .assistant-avatar {
-      background-color: rgba(255, 255, 255, 0.2);
       img {
         opacity: 1;
       }
     }
   }
   .assistant-avatar {
-    margin-bottom: 4px;
     width: 44px;
     height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
+    margin-right: 10px;
     img {
       width: 24px;
       height: 24px;
@@ -117,8 +121,9 @@ defineEmits(["select-assistant"]);
 .active {
   .assistant-item-content {
     color: var(--assistant-text-light-color);
+    background-color: rgba(255, 255, 255, 0.2);
     .assistant-avatar {
-      background-color: rgba(255, 255, 255, 0.2);
+      // background-color: rgba(255, 255, 255, 0.2);
       img {
         opacity: 1;
       }
@@ -127,9 +132,16 @@ defineEmits(["select-assistant"]);
 }
 
 .assistant-info {
+  flex: 1;
   .assistant-name {
     font-size: 14px;
     font-weight: bolder;
+    line-height: 22px;
+  }
+  .assistant-description {
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 16px;
   }
 }
 </style>
