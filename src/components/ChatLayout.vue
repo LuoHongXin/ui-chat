@@ -298,9 +298,9 @@ async function sendMessage(value, isNew) {
       );
 
       if (createSessionResponse.data.code === 0) {
-        originalChatId = createSessionResponse.data.data.id;
         // 确保当前对话仍然是发送消息时的对话
         if (currentChat.value.id === originalChatId) {
+          originalChatId = createSessionResponse.data.data.id;
           currentChat.value.id = originalChatId; // 更新对话ID
           currentChat.value.isTemp = false;
         }
@@ -336,6 +336,7 @@ async function sendMessage(value, isNew) {
         content: response.data.data.answer,
         id: response.data.data.id,
       };
+      console.log("AI回答:", currentChat.value.id, originalChatId);
       // 确保当前对话仍然是发送消息时的对话
       if (currentChat.value.id === originalChatId) {
         currentChat.value.messages.push(aiMessage);

@@ -6,6 +6,8 @@ export const THEME_CONFIG = {
 
 // API配置
 export const API_CONFIG = {
+    // 请求超时时间（毫秒）
+    timeout: 100000,
     appId: "wh5de3bcd828824b7",
     securityKey: "430412ff4f49450c8e2bbc1507730732",
     // API服务器地址，默认使用本地测试服务器

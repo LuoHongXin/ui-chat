@@ -1,8 +1,8 @@
 import axios from 'axios';
-const instance = axios.create({
-    timeout: 10000
-});
 import { API_CONFIG } from '../config';
+const instance = axios.create({
+    timeout: API_CONFIG.timeout
+});
 
 /**
  * 创建用户会话记录

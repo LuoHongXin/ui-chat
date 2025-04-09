@@ -4,13 +4,13 @@ import { useAuthStore } from '../stores/auth';
 
 // 创建用于认证的axios实例
 const authInstance = axios.create({
-    timeout: 10000
+    timeout: API_CONFIG.timeout
 });
 
 // 创建用于API请求的axios实例
 const apiInstance = axios.create({
     baseURL: API_CONFIG.API_SERVER,
-    timeout: 10000,
+    timeout: API_CONFIG.timeout,
     headers: {
         'Content-Type': 'application/json'
     }
