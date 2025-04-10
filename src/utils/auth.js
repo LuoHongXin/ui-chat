@@ -106,5 +106,27 @@ export async function fetchUserInfo(accessToken) {
     }
 }
 
+// 获取用户的知识库列表
+export async function fetchKnowledgeBaseList(accessToken) {
+    try {
+        const response = await authInstance.get('https://account.qiyeyun.co/api/v2/knowledge-base/mine', {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`
+            }
+        });
+        return response.data.map(i => {
+            return {
+                ...i,
+                description: i.remark,
+                id: i.knowledgeBaseId,
+                avatar: i.logo,
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching knowledge base list:', error);
+        return null;
+    }
+}
+
 // 导出API实例供其他模块使用
 export default apiInstance;

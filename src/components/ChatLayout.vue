@@ -28,6 +28,7 @@
 import { ref, onMounted, nextTick } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import instance from "../utils/auth";
+import { fetchKnowledgeBaseList } from "../utils/auth";
 import AssistantList from "./AssistantList.vue";
 import ChatHistory from "./ChatHistory.vue";
 import ChatMain from "./ChatMain.vue";
@@ -57,11 +58,9 @@ onMounted(() => {
 
 async function loadAssistants() {
   try {
-    const response = await instance.get(
-      `/api/v1/chats?page=1&page_size=999&orderby=update_time`
-    );
-    if (response.data.code === 0) {
-      assistants.value = response.data.data;
+    const response = await fetchKnowledgeBaseList(authStore.token);
+    if (response) {
+      assistants.value = response;
       if (assistants.value.length > 0) {
         selectAssistant(assistants.value[0]);
       }
