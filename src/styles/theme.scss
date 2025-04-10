@@ -8,13 +8,13 @@
     .el-message-box__message {
         color:#83878F ;
     }
-    .el-button:hover {
+    .el-button:hover:not(.is-disabled) {
         background-color: unset;
         border-color: #83878f;
         color: #454852;
         outline: none;
     }
-    .el-button.el-button--primary:hover {
+    .el-button.el-button--primary:hover:not(.is-disabled) {
         background-color: #e6655c;
         border-color: #e6655c;
         color: #fff;
