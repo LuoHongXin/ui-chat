@@ -304,6 +304,7 @@ async function sendMessage(value, isNew) {
           originalChatId = createSessionResponse.data.data.id;
           currentChat.value.id = originalChatId; // 更新对话ID
           currentChat.value.isTemp = false;
+          currentChat.value.name = createSessionResponse.data.data.name;
         }
 
         // 创建用户会话记录
