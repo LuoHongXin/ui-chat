@@ -59,7 +59,7 @@ export function redirectToAuth() {
 
     // 生产环境执行实际授权跳转
     const state = generateState();
-    const authUrl = `https://account.qiyeyun.co/authorize?response_type=code&client_id=${API_CONFIG.appId}&scope=profile&state=${state}`;
+    const authUrl = `https://account.winhong.com/authorize?response_type=code&client_id=${API_CONFIG.appId}&scope=profile&state=${state}`;
     window.location.href = authUrl;
 }
 
@@ -78,7 +78,7 @@ export async function fetchToken(code) {
         formData.append('client_id', API_CONFIG.appId);
         formData.append('code', code);
 
-        const response = await authInstance.post('https://account.qiyeyun.co/api/v1/oauth2/token', formData, {
+        const response = await authInstance.post('https://account.winhong.com/api/v1/oauth2/token', formData, {
             headers: {
                 'Authorization': `Basic ${credentials}`,
                 'Content-Type': 'application/x-www-form-urlencoded'
@@ -94,7 +94,7 @@ export async function fetchToken(code) {
 // 获取用户信息
 export async function fetchUserInfo(accessToken) {
     try {
-        const response = await authInstance.get('https://account.qiyeyun.co/api/v1/oauth2/userinfo', {
+        const response = await authInstance.get('https://account.winhong.com/api/v1/oauth2/userinfo', {
             headers: {
                 'Authorization': `Bearer ${accessToken}`
             }
@@ -109,7 +109,7 @@ export async function fetchUserInfo(accessToken) {
 // 获取用户的知识库列表
 export async function fetchKnowledgeBaseList(accessToken) {
     try {
-        const response = await authInstance.get('https://account.qiyeyun.co/api/v2/knowledge-base/mine', {
+        const response = await authInstance.get('https://account.winhong.com/api/v2/knowledge-base/mine', {
             headers: {
                 'Authorization': `Bearer ${accessToken}`
             }
