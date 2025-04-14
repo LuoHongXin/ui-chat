@@ -144,7 +144,7 @@ async function createNewChat() {
     messages: [
       {
         role: "assistant",
-        content: "你好！我是你的助理，有什么可以帮到你的吗？",
+        content: "您好！我是您的智能助手，请问有什么可以帮到您的吗？",
         id: generateRandomId(),
       },
     ],

@@ -87,7 +87,7 @@
       <!-- 没有对话内容时 -->
       <div class="no-chat-messages" v-if="currentChat.messages.length === 0">
         <div class="no-chat-messages-text-title">
-          你好！我是你的助理，有什么可以帮到你的吗？
+          您好！我是您的智能助手，请问有什么可以帮到您的吗？
         </div>
         <div class="input-wrapper">
           <el-input
